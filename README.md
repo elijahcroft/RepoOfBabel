@@ -1,7 +1,6 @@
 # Repo of Babel
 
-A client-only static web app that deterministically generates fake source code from an address. No API calls, no AI, no dependencies, no build step. The same address always produces the same output, forever.
-
+A client-only static web app that deterministically generates fake source code from an address. 
 ## Concept
 
 This is a software-engineering riff on Jorge Luis Borges' *Library of Babel* — a fictional library containing every possible book, where each book exists at a fixed address (room, shelf, book, page). Here, the "library" is an infinite namespace of fake repositories, and every address resolves to a unique, stable page of generated code.
