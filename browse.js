@@ -75,10 +75,6 @@ function repoMeta(n) {
   return { name: `${adj}-${noun}`, description, stars, updatedDays };
 }
 
-function branchLabel(n) {
-  return n === 1 ? "main" : `branch-${n}`;
-}
-
 function relativeTime(days) {
   if (days < 30) return `${days} day${days === 1 ? "" : "s"} ago`;
   if (days < 365) {
@@ -182,6 +178,11 @@ function renderBreadcrumb() {
   repoCrumb.classList.add("ghcrumb-repo");
   elements.breadcrumb.append(repoCrumb);
 
+  const repoIndex = document.createElement("span");
+  repoIndex.className = "ghcrumb-index";
+  repoIndex.textContent = `#${state.repo}`;
+  elements.breadcrumb.append(repoIndex);
+
   if (depth >= 2) {
     elements.breadcrumb.append(makeSep());
     elements.breadcrumb.append(
@@ -250,7 +251,7 @@ function renderActions() {
   for (let b = BOUNDS.branch.min; b <= BOUNDS.branch.max; b += 1) {
     const opt = document.createElement("option");
     opt.value = String(b);
-    opt.textContent = branchLabel(b);
+    opt.textContent = b === 1 ? "main · #1" : `branch-${b}`;
     select.append(opt);
   }
   select.value = String(state.branch);
@@ -286,7 +287,7 @@ function renderRepos() {
     card.type = "button";
     card.className = "gh-repo-card";
     card.innerHTML = `
-      <div class="gh-repo-title">${ICONS.repo}<span class="gh-repo-name">${OWNER} / ${meta.name}</span></div>
+      <div class="gh-repo-title">${ICONS.repo}<span class="gh-repo-name">${OWNER} / ${meta.name}</span><span class="gh-repo-index">repo #${repo}</span></div>
       <p class="gh-repo-desc">${meta.description}</p>
       <div class="gh-repo-meta">
         <span class="gh-repo-lang">${langDot()}</span>
