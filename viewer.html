@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Repo of Babel · Address Viewer</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="background">
+      <div class="glow glow-left"></div>
+      <div class="glow glow-right"></div>
+      <div class="grid"></div>
+    </div>
+    <main class="app-shell">
+      <header class="hero hero-row">
+        <div>
+          <a class="home-link" href="./index.html">‹ Repo of Babel</a>
+          <h1>Address Viewer</h1>
+        </div>
+      </header>
+
+      <section class="panel controls-panel">
+        <form id="address-form" class="address-grid" autocomplete="off">
+          <label>
+            <span>Repo <em class="bound">∞</em></span>
+            <div class="spin-field">
+              <button type="button" class="spin-btn" data-nav="prev-repo" aria-label="Previous repo">‹</button>
+              <input id="repo-input" name="repo" type="number" min="1" step="1" required />
+              <button type="button" class="spin-btn" data-nav="next-repo" aria-label="Next repo">›</button>
+            </div>
+          </label>
+          <label>
+            <span>Branch <em class="bound">1–32</em></span>
+            <div class="spin-field">
+              <button type="button" class="spin-btn" data-nav="prev-branch" aria-label="Previous branch">‹</button>
+              <input id="branch-input" name="branch" type="number" min="1" max="32" step="1" required />
+              <button type="button" class="spin-btn" data-nav="next-branch" aria-label="Next branch">›</button>
+            </div>
+          </label>
+          <label>
+            <span>Folder <em class="bound">1–128</em></span>
+            <div class="spin-field">
+              <button type="button" class="spin-btn" data-nav="prev-folder" aria-label="Previous folder">‹</button>
+              <input id="folder-input" name="folder" type="number" min="1" max="128" step="1" required />
+              <button type="button" class="spin-btn" data-nav="next-folder" aria-label="Next folder">›</button>
+            </div>
+          </label>
+          <label>
+            <span>File <em class="bound">1–64</em></span>
+            <div class="spin-field">
+              <button type="button" class="spin-btn" data-nav="prev-file" aria-label="Previous file">‹</button>
+              <input id="file-input" name="file" type="number" min="1" max="64" step="1" required />
+              <button type="button" class="spin-btn" data-nav="next-file" aria-label="Next file">›</button>
+            </div>
+          </label>
+          <label class="language-select">
+            <span>Language</span>
+            <select id="lang-input" name="lang"></select>
+          </label>
+        </form>
+
+        <div class="nav-actions-row">
+          <button type="button" class="action-btn" data-nav="random">Random Jump</button>
+          <button type="button" class="action-btn ghost" id="copy-link">Copy Link</button>
+        </div>
+      </section>
+
+      <section class="panel viewer-panel">
+        <div class="viewer-header">
+          <p id="viewer-subtitle" class="viewer-subtitle"></p>
+        </div>
+        <div id="code-viewer" class="code-viewer" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

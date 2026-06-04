@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Repo of Babel · Browse</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="background">
+      <div class="glow glow-left"></div>
+      <div class="glow glow-right"></div>
+      <div class="grid"></div>
+    </div>
+    <main class="app-shell">
+      <header class="hero hero-row">
+        <div>
+          <a class="home-link" href="./index.html">‹ Repo of Babel</a>
+          <h1>Browse</h1>
+        </div>
+        <div class="browse-tools">
+          <label class="lang-inline">
+            <span>Language</span>
+            <select id="lang-input"></select>
+          </label>
+        </div>
+      </header>
+
+      <section class="panel gh-panel">
+        <div class="gh-topbar">
+          <nav id="breadcrumb" class="gh-breadcrumb" aria-label="Location"></nav>
+          <div id="context-actions" class="gh-actions"></div>
+        </div>
+
+        <div id="browse-grid" class="gh-body" aria-live="polite"></div>
+
+        <div id="file-view" class="gh-blob" hidden>
+          <div id="blob-head" class="blob-head"></div>
+          <div id="file-code" class="code-viewer"></div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./browse.js"></script>
+  </body>
+</html>
