@@ -386,7 +386,7 @@ function pickFrom(list, seed, salt = 0) {
 function branchLabel(branch, repo = state.repo) {
   const seed = coordinateSeed(repo, branch);
   const name = branch === 1 ? "main" : branch === 2 ? "dev" : pickFrom(BRANCH_NAMES, seed, 1);
-  return `${name} · #${branch}`;
+  return { name, index: branch };
 }
 
 function folderLabel(folder, address = state) {
@@ -394,7 +394,7 @@ function folderLabel(folder, address = state) {
   const base = pickFrom(FOLDER_NAMES, seed, 1);
   const useSuffix = (seed % 10) >= 4;
   const name = useSuffix ? `${base}-${pickFrom(NOUNS, seed, 2)}` : base;
-  return `${name} · #${folder}`;
+  return { name, index: folder };
 }
 
 function fileLabel(file, lang, address = state) {
@@ -403,7 +403,11 @@ function fileLabel(file, lang, address = state) {
   const base = pickFrom(FILE_BASENAMES, seed, 1);
   const useSuffix = (seed % 10) >= 4;
   const name = useSuffix ? `${base}_${pickFrom(NOUNS, seed, 2)}` : base;
-  return `${name}.${EXTENSIONS[lang]} · #${file}`;
+  return { name: `${name}.${EXTENSIONS[lang]}`, index: file };
+}
+
+function labelText({ name, index }) {
+  return `${name} · #${index}`;
 }
 
 function commitMessage(seed) {
@@ -461,12 +465,27 @@ function fillLanguageOptions() {
 function crumbButton(label, onClick, current = false) {
   const node = document.createElement(current ? "span" : "button");
   node.className = current ? "ghcrumb ghcrumb-current" : "ghcrumb";
-  node.textContent = label;
+  if (label && typeof label === "object") {
+    const nameSpan = document.createElement("span");
+    nameSpan.textContent = label.name;
+    const pill = document.createElement("span");
+    pill.className = "ghcrumb-index";
+    pill.textContent = `#${label.index}`;
+    node.append(nameSpan, pill);
+  } else {
+    node.textContent = label;
+  }
   if (!current) {
     node.type = "button";
     node.addEventListener("click", onClick);
   }
   return node;
+}
+
+function goBack() {
+  if (state.level === "view") { setLevel("folder"); render(); }
+  else if (state.level === "folder") { setLevel("repo"); render(); }
+  else if (state.level === "repo") { setLevel("repos"); render(); }
 }
 
 function renderBreadcrumb() {
@@ -481,10 +500,20 @@ function renderBreadcrumb() {
     return;
   }
 
+  const back = document.createElement("button");
+  back.type = "button";
+  back.className = "ghcrumb-back";
+  back.innerHTML = "&#8592;";
+  back.setAttribute("aria-label", "Go back");
+  back.addEventListener("click", goBack);
+  elements.breadcrumb.append(back);
+
   const meta = repoMeta(state.repo);
-  const owner = document.createElement("span");
-  owner.className = "ghcrumb-owner";
+  const owner = document.createElement("button");
+  owner.type = "button";
+  owner.className = "ghcrumb-owner ghcrumb";
   owner.innerHTML = `${ICONS.repo}<span>${OWNER} /</span>`;
+  owner.addEventListener("click", () => { setLevel("repos"); render(); });
   elements.breadcrumb.append(owner);
 
   const repoCrumb = crumbButton(meta.name, () => {
@@ -569,7 +598,7 @@ function renderActions() {
   branchButton.className = "gh-branch";
   branchButton.setAttribute("aria-haspopup", "listbox");
   branchButton.setAttribute("aria-expanded", "false");
-  branchButton.setAttribute("aria-label", `Select branch, current ${branchLabel(state.branch, state.repo)}`);
+  branchButton.setAttribute("aria-label", `Select branch, current ${labelText(branchLabel(state.branch, state.repo))}`);
 
   const branchRow = document.createElement("span");
   branchRow.className = "gh-branch-row";
@@ -580,7 +609,7 @@ function renderActions() {
 
   const branchName = document.createElement("span");
   branchName.className = "gh-branch-name";
-  branchName.textContent = branchLabel(state.branch, state.repo);
+  branchName.textContent = labelText(branchLabel(state.branch, state.repo));
 
   const chevron = document.createElement("span");
   chevron.className = "gh-branch-chevron";
@@ -612,9 +641,9 @@ function renderActions() {
     const option = document.createElement("button");
     option.type = "button";
     option.className = "gh-branch-option";
-    const label = branchLabel(b, state.repo);
-    option.textContent = label;
-    option.title = label;
+    const bl = branchLabel(b, state.repo);
+    option.innerHTML = `<strong>${bl.name}</strong><span class="gh-branch-index">#${bl.index}</span>`;
+    option.title = labelText(bl);
     option.setAttribute("role", "option");
     option.setAttribute("aria-selected", String(b === state.branch));
     option.addEventListener("click", () => {
@@ -730,13 +759,13 @@ function renderRepos() {
   }
 }
 
-function listRow({ icon, name, message, days, onClick }) {
+function listRow({ icon, label, message, days, onClick }) {
   const row = document.createElement("button");
   row.type = "button";
   row.className = "gh-row";
   row.innerHTML = `
     <span class="gh-row-icon">${icon}</span>
-    <span class="gh-row-name">${name}</span>
+    <span class="gh-row-name"><span>${label.name}</span><span class="gh-row-index">#${label.index}</span></span>
     <span class="gh-row-msg">${message}</span>
     <span class="gh-row-time">${relativeTime(days)}</span>`;
   row.addEventListener("click", onClick);
@@ -753,7 +782,7 @@ function renderFolders() {
     elements.grid.append(
       listRow({
         icon: ICONS.folder,
-        name: folderLabel(folder, { ...state, folder }),
+        label: folderLabel(folder, { ...state, folder }),
         message: commitMessage(seed),
         days: 1 + (seed % 600),
         onClick: () => {
@@ -776,7 +805,7 @@ function renderFiles() {
     elements.grid.append(
       listRow({
         icon: ICONS.file,
-        name: fileLabel(file, state.lang, { ...state, file }),
+        label: fileLabel(file, state.lang, { ...state, file }),
         message: commitMessage(seed),
         days: 1 + (seed % 600),
         onClick: () => {
@@ -806,7 +835,8 @@ function renderBlob() {
     elements.blobHead.querySelector(".blob-run").before(el);
     return el;
   })();
-  nameEl.innerHTML = `${ICONS.file}<strong>${fileLabel(state.file, state.lang)}</strong>`;
+  const fl = fileLabel(state.file, state.lang);
+  nameEl.innerHTML = `${ICONS.file}<strong>${fl.name}</strong><span class="ghcrumb-index">#${fl.index}</span>`;
   metaEl.textContent = `${generated.lines.length} lines · ${LANGUAGE_DEFS[state.lang].label} · seed ${generated.seed}`;
   renderLinesInto(elements.fileCode, generated.lines);
 
