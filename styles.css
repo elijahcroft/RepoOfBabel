@@ -792,7 +792,27 @@ button {
 
 .viewer-panel {
   margin-top: 18px;
-  overflow: hidden;
+}
+
+.code-viewer-wrap {
+  position: relative;
+}
+
+.code-viewer-wrap::after {
+  background: linear-gradient(to bottom, transparent 60%, var(--bg) 100%);
+  bottom: 0;
+  content: "";
+  left: 0;
+  opacity: 1;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  height: 80px;
+  transition: opacity 400ms ease;
+}
+
+.code-viewer-wrap.at-bottom::after {
+  opacity: 0;
 }
 
 .viewer-header {
@@ -807,13 +827,9 @@ button {
 }
 
 .code-viewer {
-  background:
-    linear-gradient(180deg, var(--code-bg-top), var(--code-bg-bot));
   counter-reset: line;
   font-size: 0.95rem;
   line-height: 1.7;
-  max-height: 60vh;
-  overflow: auto;
   padding: 16px 0;
 }
 
@@ -917,26 +933,11 @@ button {
 *,
 html,
 body {
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 
 ::-webkit-scrollbar {
-  height: 6px;
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
+  display: none;
 }
 
 @keyframes rise {

@@ -244,3 +244,9 @@ function bindEvents() {
 fillLanguageOptions();
 bindEvents();
 render(addressFromUrl());
+
+const wrap = document.getElementById("code-viewer-wrap");
+window.addEventListener("scroll", () => {
+  const atBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight - 40;
+  wrap.classList.toggle("at-bottom", atBottom);
+});
