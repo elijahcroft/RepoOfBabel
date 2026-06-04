@@ -489,25 +489,6 @@ button {
 }
 
 /* Browse: guided descent */
-.browse-tools {
-  align-items: flex-end;
-  display: flex;
-  gap: 12px;
-}
-
-.lang-inline {
-  flex-direction: column;
-  gap: 6px;
-}
-
-.lang-inline span {
-  font-size: 0.72rem;
-}
-
-.lang-inline select {
-  min-height: 44px;
-  padding: 8px 12px;
-}
 
 /* GitHub-style browse */
 .gh-panel {
@@ -519,18 +500,33 @@ button {
   align-items: center;
   border-bottom: 1px solid var(--border);
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: space-between;
-  padding: 14px 20px;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 16px;
 }
+
+.gh-actionbar {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  min-height: 44px;
+  padding: 0 16px;
+}
+
+.gh-actionbar:empty,
+.gh-actionbar:has(.gh-actions:empty) {
+  display: none;
+}
+
 
 .gh-breadcrumb {
   align-items: center;
   display: flex;
+  flex: 1;
   flex-wrap: wrap;
   font-size: 1.05rem;
   gap: 6px;
+  min-width: 0;
 }
 
 .gh-breadcrumb svg {
@@ -684,7 +680,7 @@ button {
 
 .gh-branch-row {
   align-items: center;
-  background: var(--bg-deep);
+  background: var(--panel-strong);
   border: 1px solid var(--border);
   border-radius: 8px;
   display: flex;
@@ -701,7 +697,7 @@ button {
 }
 
 .gh-branch:hover .gh-branch-row {
-  background: var(--bg-mid);
+  background: color-mix(in srgb, var(--panel-strong) 80%, var(--bg));
   border-color: var(--muted);
 }
 
@@ -754,6 +750,36 @@ button {
   text-align: left;
   white-space: nowrap;
   width: 8.75rem;
+}
+
+.gh-lang-icon {
+  align-items: center;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.gh-lang-picker .gh-branch-option {
+  align-items: center;
+  display: flex;
+  gap: 7px;
+}
+
+.gh-lang-picker .gh-branch-name {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.gh-lang-picker .gh-branch-menu {
+  font-size: 0.8rem;
+  min-width: 0;
+  right: 0;
+  left: auto;
+  width: max-content;
+}
+
+.gh-lang-picker .gh-branch-option {
+  min-height: 24px;
+  padding: 0 8px;
 }
 
 .gh-branch-menu {
@@ -889,6 +915,10 @@ button {
 }
 
 /* Repo explore grid */
+.gh-body-uncapped {
+  max-height: none;
+}
+
 .gh-repo-grid {
   display: grid;
   gap: 14px;
@@ -967,6 +997,8 @@ button {
   border-radius: 999px;
   display: inline-block;
   height: 10px;
+  margin-right: 4px;
+  vertical-align: middle;
   width: 10px;
 }
 
@@ -1087,7 +1119,7 @@ button {
 }
 
 .split-view.has-output {
-  height: 70vh;
+  height: 82vh;
 }
 
 .split-view.has-output .code-viewer {
@@ -1097,10 +1129,11 @@ button {
 }
 
 .split-view.has-output .terminal-wrap {
-  flex: 0 0 45%;
-  min-height: 0;
+  animation: slide-up 200ms ease-out both;
   display: flex;
+  flex: 0 0 50%;
   flex-direction: column;
+  min-height: 0;
 }
 
 .split-view.has-output .terminal {
@@ -1108,8 +1141,13 @@ button {
   max-height: none;
 }
 
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .terminal-wrap {
-  border-top: 1px solid var(--border);
+  border-top: 2px solid color-mix(in srgb, var(--accent) 45%, var(--border));
   border-radius: 0 0 16px 16px;
   overflow: hidden;
 }
@@ -1368,19 +1406,20 @@ button {
   color: inherit;
 }
 
-/* Dark mode toggle — inline in header */
+/* Dark mode toggle */
 .theme-toggle {
   align-items: center;
   background: var(--panel-strong);
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 8px;
   color: var(--muted);
   cursor: pointer;
   display: inline-flex;
-  font-size: 0.82rem;
-  gap: 5px;
-  padding: 6px 14px;
-  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+  height: 32px;
+  justify-content: center;
+  padding: 0;
+  transition: border-color 160ms ease, color 160ms ease;
+  width: 32px;
 }
 
 .theme-toggle:hover {
@@ -1388,9 +1427,26 @@ button {
   color: var(--accent);
 }
 
-.theme-toggle-icon {
-  font-size: 0.95rem;
-  line-height: 1;
+.theme-toggle-fixed {
+  position: fixed;
+  right: 24px;
+  top: 20px;
+  z-index: 100;
+}
+
+.theme-icon-sun { display: none; }
+.theme-icon-moon { display: block; }
+
+[data-theme="dark"] .theme-icon-sun,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-icon-sun { display: block; }
+}
+
+[data-theme="dark"] .theme-icon-moon { display: none; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-icon-moon { display: none; }
+  :root:not([data-theme="light"]) .theme-icon-sun { display: block; }
 }
 
 /* landing: title + toggle on same row */

@@ -60,8 +60,11 @@ function runInWorker(makeWorker, source, timeoutMs, onTimeout) {
 }
 
 function runJs(source) {
-  // Fresh worker per run: cheap, and guarantees a clean global scope each time.
   return runInWorker(() => new Worker("./workers/js-runner.js"), source, JS_TIMEOUT_MS);
+}
+
+function runTs(source) {
+  return runInWorker(() => new Worker("./workers/ts-runner.js"), source, JS_TIMEOUT_MS);
 }
 
 // The Pyodide worker is expensive to create (downloads + initializes the runtime),
@@ -85,6 +88,7 @@ function runPython(source) {
 const RUNNERS = {
   javascript: runJs,
   python: runPython,
+  typescript: runTs,
 };
 
 // True when running `lang` will load a heavy runtime that isn't ready yet — lets

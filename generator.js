@@ -5,6 +5,7 @@
 export const LANGUAGE_DEFS = {
   python: {
     label: "Python",
+    icon: `<svg viewBox="0 0 16 16" width="14" height="14" fill="none"><path d="M8 0C5.24 0 5.5 1.24 5.5 1.24V2.5h2.56v.38H3.94S2 2.69 2 5.5s1.75 2.75 1.75 2.75H4.8V6.94s-.06-1.69 1.63-1.69H9.2s1.55.03 1.55-1.5V1.5S11.1 0 8 0zM6.5.88a.5.5 0 1 1 0 1 .5.5 0 0 1 0-1z" fill="#4B8BBE"/><path d="M8 16c2.76 0 2.5-1.24 2.5-1.24V13.5H7.94v-.38h4.12S14 13.31 14 10.5s-1.75-2.75-1.75-2.75H11.2V9.06s.06 1.69-1.63 1.69H6.8s-1.55-.03-1.55 1.5v2.25S4.9 16 8 16zm1.5-.88a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1z" fill="#FFD43B"/></svg>`,
     commentPrefix: "# ",
     blockOpeners: ["def", "if", "for", "while", "class", "try", "with"],
     tokens: {
@@ -19,12 +20,28 @@ export const LANGUAGE_DEFS = {
   },
   javascript: {
     label: "JavaScript",
+    icon: `<svg viewBox="0 0 32 32" width="14" height="14"><rect width="32" height="32" rx="4" fill="#F7DF1E"/><path d="M9.5 25.5l2.1-1.27c.4.72.77 1.33 1.65 1.33.84 0 1.37-.33 1.37-1.61V16h2.58v7.98c0 2.65-1.55 3.86-3.82 3.86-2.05 0-3.24-1.06-3.88-2.34zm9.03.26l2.1-1.22c.55.9 1.27 1.56 2.54 1.56 1.07 0 1.75-.53 1.75-1.27 0-.88-.7-1.19-1.88-1.7l-.65-.28c-1.86-.79-3.1-1.79-3.1-3.89 0-1.94 1.48-3.41 3.79-3.41 1.64 0 2.82.57 3.67 2.06l-2.01 1.29c-.44-.79-.92-1.1-1.66-1.1-.75 0-1.23.48-1.23 1.1 0 .77.48 1.08 1.59 1.56l.65.28c2.19.94 3.44 1.9 3.44 4.05 0 2.32-1.82 3.6-4.27 3.6-2.39 0-3.94-1.14-4.73-2.63z"/></svg>`,
     commentPrefix: "// ",
     blockOpeners: ["function", "if", "for", "while", "class", "try"],
     tokens: {
       keywords: ["function", "if", "else", "for", "while", "return", "class", "import", "try", "const"],
       builtins: ["console.log", "Array", "Object", "String", "Number", "Boolean", "Map", "Set", "parseInt", "JSON.stringify"],
       operators: ["=", "===", "!==", "+", "-", "*", "/", "%", "&&", "||", "!", "in"],
+      identifiers: ["x", "y", "n", "i", "j", "result", "data", "value", "items", "node", "key", "buf"],
+      literals: ["0", "1", "true", "false", "null", "\"\"", "[]", "{}", "-1", "42"],
+      punctuation: ["(", ")", "{", "}", ":", ",", "[", "]", ".", ";"],
+    },
+    templates: ["assignment", "func_def", "if_stmt", "loop_stmt", "return_stmt", "expr_stmt", "comment"],
+  },
+  typescript: {
+    label: "TypeScript",
+    icon: `<svg viewBox="0 0 32 32" width="14" height="14"><rect width="32" height="32" rx="4" fill="#3178C6"/><path d="M17.44 26v-2.19c.51.3 1.12.54 1.82.7.7.17 1.38.25 2.02.25.4 0 .77-.04 1.1-.11.33-.07.61-.18.84-.32.23-.14.41-.32.53-.53.13-.21.19-.46.19-.74 0-.36-.1-.67-.3-.94a3.1 3.1 0 0 0-.8-.74 8.5 8.5 0 0 0-1.17-.66 26 26 0 0 1-1.4-.75 6.6 6.6 0 0 1-1.09-.82 3.5 3.5 0 0 1-.73-1.04 3.3 3.3 0 0 1-.27-1.38c0-.6.13-1.12.39-1.56.26-.44.6-.8 1.04-1.09.43-.28.93-.49 1.49-.62.56-.14 1.14-.2 1.74-.2 1.23 0 2.16.1 2.78.3v2.1a5.3 5.3 0 0 0-2.91-.63c-.37 0-.71.04-1.02.11a2.5 2.5 0 0 0-.8.31c-.22.14-.4.31-.52.52a1.4 1.4 0 0 0-.19.73c0 .33.08.61.24.85.16.24.39.46.68.66.3.2.64.4 1.04.6.4.2.84.43 1.33.68.52.28.99.57 1.41.88.42.31.78.65 1.07 1.02.3.37.52.78.68 1.22.16.44.24.95.24 1.51 0 .64-.13 1.19-.39 1.63-.26.44-.61.8-1.05 1.07-.44.27-.94.47-1.5.59-.56.12-1.14.19-1.74.19-.24 0-.53-.02-.87-.05a9.3 9.3 0 0 1-1.02-.16 7.5 7.5 0 0 1-.96-.27 3.6 3.6 0 0 1-.74-.38zM9 16.09H5.5V14h9.5v2.09H11.5V26H9V16.09z" fill="#fff"/></svg>`,
+    commentPrefix: "// ",
+    blockOpeners: ["function", "if", "for", "while", "class", "try"],
+    tokens: {
+      keywords: ["function", "if", "else", "for", "while", "return", "class", "const", "type", "interface", "readonly"],
+      builtins: ["console.log", "Array", "Object", "String", "Number", "Boolean", "Map", "Set", "parseInt", "JSON.stringify"],
+      operators: ["=", "===", "!==", "+", "-", "*", "/", "%", "&&", "||", "!", "??"],
       identifiers: ["x", "y", "n", "i", "j", "result", "data", "value", "items", "node", "key", "buf"],
       literals: ["0", "1", "true", "false", "null", "\"\"", "[]", "{}", "-1", "42"],
       punctuation: ["(", ")", "{", "}", ":", ",", "[", "]", ".", ";"],
@@ -255,6 +272,7 @@ function renderTemplate(template, def, random) {
 
   return javascriptLine(template, def, random);
 }
+
 
 function shouldIncreaseIndent(segments, def) {
   const text = segments.map((segment) => segment.text).join("");

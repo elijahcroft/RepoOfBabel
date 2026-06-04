@@ -16,8 +16,8 @@ const LEVELS = ["repos", "repo", "folder", "view"];
 const REPOS_PER_PAGE = 12;
 
 const OWNER = "babel";
-const EXTENSIONS = { python: "py", javascript: "js" };
-const LANG_COLORS = { python: "#3572A5", javascript: "#f1e05a" };
+const EXTENSIONS = { python: "py", javascript: "js", typescript: "ts" };
+const LANG_COLORS = { python: "#3572A5", javascript: "#f1e05a", typescript: "#3178c6" };
 
 const ADJECTIVES = [
   "async", "atomic", "binary", "cached", "canonical", "compiled", "concurrent", "deterministic",
@@ -308,7 +308,7 @@ const ICONS = {
 };
 
 const elements = {
-  lang: document.querySelector("#lang-input"),
+  langPicker: document.querySelector("#lang-picker"),
   breadcrumb: document.querySelector("#breadcrumb"),
   actions: document.querySelector("#context-actions"),
   grid: document.querySelector("#browse-grid"),
@@ -452,14 +452,91 @@ function readUrl() {
   });
 }
 
-function fillLanguageOptions() {
+function buildLangPicker() {
+  const wrap = elements.langPicker;
+  wrap.innerHTML = "";
+  wrap.classList.add("gh-lang-picker");
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "gh-branch";
+  btn.setAttribute("aria-haspopup", "listbox");
+  btn.setAttribute("aria-expanded", "false");
+
+  const row = document.createElement("span");
+  row.className = "gh-branch-row";
+
+  const iconSpan = document.createElement("span");
+  iconSpan.className = "gh-lang-icon";
+  iconSpan.innerHTML = LANGUAGE_DEFS[state.lang].icon;
+
+  const nameSpan = document.createElement("span");
+  nameSpan.className = "gh-branch-name";
+  nameSpan.textContent = LANGUAGE_DEFS[state.lang].label;
+
+  const chevron = document.createElement("span");
+  chevron.className = "gh-branch-chevron";
+  chevron.setAttribute("aria-hidden", "true");
+
+  const menu = document.createElement("div");
+  menu.className = "gh-branch-menu";
+  menu.hidden = true;
+  menu.setAttribute("role", "listbox");
+  menu.setAttribute("aria-label", "Language");
+
+  const closeMenu = () => {
+    menu.hidden = true;
+    btn.setAttribute("aria-expanded", "false");
+  };
+  const openMenu = () => {
+    menu.hidden = false;
+    btn.setAttribute("aria-expanded", "true");
+    menu.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest" });
+  };
+
+  const options = [];
   Object.entries(LANGUAGE_DEFS).forEach(([value, def]) => {
-    const option = document.createElement("option");
-    option.value = value;
-    option.textContent = def.label;
-    elements.lang.append(option);
+    const opt = document.createElement("button");
+    opt.type = "button";
+    opt.className = "gh-branch-option";
+    opt.innerHTML = `<span class="gh-lang-icon">${def.icon}</span>${def.label}`;
+    opt.setAttribute("role", "option");
+    opt.setAttribute("aria-selected", String(value === state.lang));
+    opt.addEventListener("click", () => {
+      state.lang = value;
+      iconSpan.innerHTML = def.icon;
+      nameSpan.textContent = def.label;
+      options.forEach(o => o.setAttribute("aria-selected", String(o === opt)));
+      closeMenu();
+      render();
+    });
+    opt.addEventListener("keydown", (e) => {
+      const i = options.indexOf(opt);
+      if (e.key === "ArrowDown") { e.preventDefault(); options[Math.min(options.length - 1, i + 1)]?.focus(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); options[Math.max(0, i - 1)]?.focus(); }
+      else if (e.key === "Escape") { e.preventDefault(); closeMenu(); btn.focus(); }
+    });
+    options.push(opt);
+    menu.append(opt);
   });
-  elements.lang.value = state.lang;
+
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (menu.hidden) { openMenu(); document.addEventListener("click", closeMenu, { once: true }); }
+    else closeMenu();
+  });
+  btn.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openMenu();
+      (menu.querySelector('[aria-selected="true"]') ?? options[0])?.focus();
+    }
+  });
+  menu.addEventListener("click", (e) => e.stopPropagation());
+
+  row.append(iconSpan, nameSpan, chevron);
+  btn.append(row);
+  wrap.append(btn, menu);
 }
 
 function crumbButton(label, onClick, current = false) {
@@ -730,7 +807,7 @@ function langDot() {
 
 // Repo layer: a GitHub-explore-style grid of repository cards.
 function renderRepos() {
-  elements.grid.className = "gh-body gh-repo-grid";
+  elements.grid.className = "gh-body gh-repo-grid gh-body-uncapped";
   elements.grid.innerHTML = "";
 
   const base = state.page * REPOS_PER_PAGE + 1;
@@ -905,21 +982,16 @@ function render() {
 }
 
 function bindEvents() {
-  elements.lang.addEventListener("change", () => {
-    state.lang = LANGUAGE_DEFS[elements.lang.value] ? elements.lang.value : "python";
-    render();
-  });
-
   elements.runBtn.addEventListener("click", runCurrentFile);
 
   window.addEventListener("popstate", () => {
     readUrl();
-    elements.lang.value = state.lang;
+    buildLangPicker();
     render();
   });
 }
 
 readUrl();
-fillLanguageOptions();
+buildLangPicker();
 bindEvents();
 render();
