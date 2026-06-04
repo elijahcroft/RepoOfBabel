@@ -324,6 +324,16 @@ export function sanitizeAddress(rawAddress) {
   };
 }
 
+// Flattens generated token lines into a plain source string, using the same
+// two-space indent convention as renderLinesInto. Tokens already embed their
+// own inter-token spacing, so segments join with no separator. Used to feed
+// the runner (see runner.js).
+export function linesToSource(lines) {
+  return lines
+    .map((line) => "  ".repeat(line.indentLevel) + line.segments.map((segment) => segment.text).join(""))
+    .join("\n");
+}
+
 // Renders generated token lines into a container element. Shared by the
 // viewer (full file) and the browse "spine" previews (truncated).
 export function renderLinesInto(container, lines, maxLines = Infinity) {

@@ -40,8 +40,24 @@
         <div id="browse-grid" class="gh-body" aria-live="polite"></div>
 
         <div id="file-view" class="gh-blob" hidden>
-          <div id="blob-head" class="blob-head"></div>
-          <div id="file-code" class="code-viewer"></div>
+          <div id="blob-head" class="blob-head">
+            <div class="blob-run">
+              <button id="run-btn" class="gh-btn" type="button">▶ Run</button>
+            </div>
+          </div>
+          <div id="split-view" class="split-view">
+            <div id="file-code" class="code-viewer"></div>
+            <div id="terminal-wrap" class="terminal-wrap" hidden>
+              <div class="terminal-bar">
+                <span class="term-dot term-dot-red"></span>
+                <span class="term-dot term-dot-yellow"></span>
+                <span class="term-dot term-dot-green"></span>
+                <span class="term-title">output</span>
+                <span id="run-status" class="run-status"></span>
+              </div>
+              <pre id="terminal" class="terminal" aria-live="polite"></pre>
+            </div>
+          </div>
         </div>
       </section>
     </main>
