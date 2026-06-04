@@ -550,9 +550,9 @@ button {
   cursor: pointer;
   display: inline-flex;
   font: inherit;
-  font-size: 0.9rem;
+  justify-content: center;
   line-height: 1;
-  padding: 3px 10px;
+  padding: 4px 8px;
   transition: color 120ms ease, background 120ms ease;
 }
 
@@ -604,9 +604,9 @@ button {
 .gh-actions {
   align-items: center;
   display: flex;
+  flex: 1;
   flex-wrap: nowrap;
   gap: 10px;
-  max-width: 100%;
   min-width: 0;
   overflow: visible;
   padding-bottom: 0;
@@ -641,6 +641,12 @@ button {
 .gh-btn:disabled {
   cursor: default;
   opacity: 0.45;
+}
+
+.gh-btn-icon {
+  font-size: 1rem;
+  min-height: 26px;
+  padding: 0 8px;
 }
 
 .gh-repo-toolbar {
@@ -886,6 +892,7 @@ button {
   flex: 0 0 auto;
   font-size: 0.76rem;
   letter-spacing: 0.04em;
+  margin-left: auto;
   padding: 4px 12px;
 }
 
@@ -1122,7 +1129,8 @@ button {
   height: 82vh;
 }
 
-.split-view.has-output .code-viewer {
+.split-view.has-output .code-viewer,
+.split-view.has-output .code-viewer-wrap {
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -1333,7 +1341,11 @@ button {
 }
 
 .viewer-header {
+  align-items: center;
   border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
   padding: 12px 20px;
 }
 
@@ -1475,26 +1487,31 @@ body {
   display: none;
 }
 
-.split-view.has-output .code-viewer {
+.split-view.has-output .code-viewer,
+.split-view.has-output .code-viewer-wrap {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
-.split-view.has-output .code-viewer::-webkit-scrollbar {
+.split-view.has-output .code-viewer::-webkit-scrollbar,
+.split-view.has-output .code-viewer-wrap::-webkit-scrollbar {
   display: block;
   width: 6px;
 }
 
-.split-view.has-output .code-viewer::-webkit-scrollbar-track {
+.split-view.has-output .code-viewer::-webkit-scrollbar-track,
+.split-view.has-output .code-viewer-wrap::-webkit-scrollbar-track {
   background: var(--scrollbar-track);
 }
 
-.split-view.has-output .code-viewer::-webkit-scrollbar-thumb {
+.split-view.has-output .code-viewer::-webkit-scrollbar-thumb,
+.split-view.has-output .code-viewer-wrap::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
   border-radius: 999px;
 }
 
-.split-view.has-output .code-viewer::-webkit-scrollbar-thumb:hover {
+.split-view.has-output .code-viewer::-webkit-scrollbar-thumb:hover,
+.split-view.has-output .code-viewer-wrap::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-thumb-hover);
 }
 

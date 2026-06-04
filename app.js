@@ -6,7 +6,9 @@ import {
   generateFile,
   sanitizeAddress,
   renderLinesInto,
+  linesToSource,
 } from "./generator.js";
+import { runCode, needsRuntimeLoad } from "./runner.js";
 
 const elements = {
   form: document.querySelector("#address-form"),
@@ -21,7 +23,14 @@ const elements = {
   codeViewer: document.querySelector("#code-viewer"),
   navButtons: Array.from(document.querySelectorAll("[data-nav]")),
   copyLink: document.querySelector("#copy-link"),
+  runBtn: document.querySelector("#run-btn"),
+  runStatus: document.querySelector("#run-status"),
+  terminal: document.querySelector("#terminal"),
+  terminalWrap: document.querySelector("#terminal-wrap"),
+  splitView: document.querySelector("#split-view"),
 };
+
+let currentSource = "";
 
 function addressFromUrl() {
   const params = new URLSearchParams(window.location.search);
@@ -84,10 +93,53 @@ function render(address) {
   setFormValues(address);
   writeAddressToUrl(address);
   renderLinesInto(elements.codeViewer, generated.lines);
+  currentSource = linesToSource(generated.lines);
 
   if (elements.addressString) elements.addressString.textContent = addressString;
   if (elements.seedValue) elements.seedValue.textContent = String(generated.seed);
   elements.subtitle.textContent = subtitle;
+
+  // Reset terminal when address changes.
+  if (elements.terminalWrap) {
+    elements.terminalWrap.hidden = true;
+    elements.terminal.innerHTML = "";
+    elements.runStatus.textContent = "";
+    elements.runBtn.disabled = false;
+    elements.splitView.classList.remove("has-output");
+  }
+}
+
+async function runCurrentFile() {
+  elements.runBtn.disabled = true;
+  elements.runStatus.textContent = needsRuntimeLoad(readFormAddress().lang) ? "Loading runtime…" : "Running…";
+
+  const result = await runCode(readFormAddress().lang, currentSource);
+
+  elements.terminal.innerHTML = "";
+  if (result.stdout) {
+    const s = document.createElement("span");
+    s.textContent = result.stdout;
+    elements.terminal.append(s);
+  }
+  if (result.stderr) {
+    const s = document.createElement("span");
+    s.className = "stderr";
+    s.textContent = (result.stdout ? "\n" : "") + result.stderr;
+    elements.terminal.append(s);
+  }
+  if (!result.stdout && !result.stderr) {
+    const s = document.createElement("span");
+    s.className = "term-empty";
+    s.textContent = "(no output)";
+    elements.terminal.append(s);
+  }
+
+  elements.terminalWrap.hidden = false;
+  elements.splitView.classList.add("has-output");
+  elements.runStatus.textContent = result.timedOut
+    ? "timed out"
+    : result.ok ? `exit ok · ${result.durationMs}ms` : `error · ${result.durationMs}ms`;
+  elements.runBtn.disabled = false;
 }
 
 function readFormAddress() {
@@ -239,6 +291,8 @@ function bindEvents() {
   window.addEventListener("popstate", () => {
     render(addressFromUrl());
   });
+
+  elements.runBtn?.addEventListener("click", runCurrentFile);
 }
 
 fillLanguageOptions();

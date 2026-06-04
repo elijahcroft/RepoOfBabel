@@ -33,6 +33,21 @@ export const LANGUAGE_DEFS = {
     },
     templates: ["assignment", "func_def", "if_stmt", "loop_stmt", "return_stmt", "expr_stmt", "comment"],
   },
+  lua: {
+    label: "Lua",
+    icon: `<svg viewBox="0 0 16 16" width="14" height="14" fill="none"><circle cx="8" cy="8" r="7" fill="#00007C"/><circle cx="8" cy="8" r="4.5" fill="white"/><circle cx="11" cy="5" r="2" fill="white"/></svg>`,
+    commentPrefix: "-- ",
+    blockOpeners: ["function", "if", "for", "while"],
+    tokens: {
+      keywords: ["local", "function", "if", "then", "else", "end", "for", "while", "do", "return", "and", "or", "not"],
+      builtins: ["print", "tostring", "tonumber", "type", "pairs", "ipairs", "table.insert", "string.format", "math.floor", "io.write"],
+      operators: ["=", "==", "~=", "+", "-", "*", "/", "%", "and", "or", "not", ".."],
+      identifiers: ["x", "y", "n", "i", "j", "result", "data", "value", "items", "node", "key", "buf"],
+      literals: ["0", "1", "true", "false", "nil", '""', "{}", "-1", "42", "math.pi"],
+      punctuation: ["(", ")", ",", ".", "[", "]"],
+    },
+    templates: ["assignment", "func_def", "if_stmt", "loop_stmt", "return_stmt", "expr_stmt", "comment"],
+  },
   typescript: {
     label: "TypeScript",
     icon: `<svg viewBox="0 0 32 32" width="14" height="14"><rect width="32" height="32" rx="4" fill="#3178C6"/><path d="M17.44 26v-2.19c.51.3 1.12.54 1.82.7.7.17 1.38.25 2.02.25.4 0 .77-.04 1.1-.11.33-.07.61-.18.84-.32.23-.14.41-.32.53-.53.13-.21.19-.46.19-.74 0-.36-.1-.67-.3-.94a3.1 3.1 0 0 0-.8-.74 8.5 8.5 0 0 0-1.17-.66 26 26 0 0 1-1.4-.75 6.6 6.6 0 0 1-1.09-.82 3.5 3.5 0 0 1-.73-1.04 3.3 3.3 0 0 1-.27-1.38c0-.6.13-1.12.39-1.56.26-.44.6-.8 1.04-1.09.43-.28.93-.49 1.49-.62.56-.14 1.14-.2 1.74-.2 1.23 0 2.16.1 2.78.3v2.1a5.3 5.3 0 0 0-2.91-.63c-.37 0-.71.04-1.02.11a2.5 2.5 0 0 0-.8.31c-.22.14-.4.31-.52.52a1.4 1.4 0 0 0-.19.73c0 .33.08.61.24.85.16.24.39.46.68.66.3.2.64.4 1.04.6.4.2.84.43 1.33.68.52.28.99.57 1.41.88.42.31.78.65 1.07 1.02.3.37.52.78.68 1.22.16.44.24.95.24 1.51 0 .64-.13 1.19-.39 1.63-.26.44-.61.8-1.05 1.07-.44.27-.94.47-1.5.59-.56.12-1.14.19-1.74.19-.24 0-.53-.02-.87-.05a9.3 9.3 0 0 1-1.02-.16 7.5 7.5 0 0 1-.96-.27 3.6 3.6 0 0 1-.74-.38zM9 16.09H5.5V14h9.5v2.09H11.5V26H9V16.09z" fill="#fff"/></svg>`,
@@ -265,25 +280,61 @@ function javascriptLine(template, def, random) {
   }
 }
 
-function renderTemplate(template, def, random) {
-  if (def === LANGUAGE_DEFS.python) {
-    return pythonLine(template, def, random);
+function luaLine(template, def, random) {
+  switch (template) {
+    case "assignment":
+      return joinSegments([keyword("local"), plain(" "), pickIdentifier(def, random), plain(" "), buildToken("=", "operator"), plain(" "), generateExpression(def, random)]);
+    case "func_def":
+      return joinSegments([
+        keyword("local"), plain(" "), keyword("function"), plain(" "),
+        pickIdentifier(def, random), punctuation("("),
+        pickIdentifier(def, random), punctuation(","), plain(" "), pickIdentifier(def, random),
+        punctuation(")"),
+      ]);
+    case "if_stmt":
+      return joinSegments([
+        keyword("if"), plain(" "),
+        pickIdentifier(def, random), plain(" "), pickOperator(def, random), plain(" "), pickLiteral(def, random),
+        plain(" "), keyword("then"),
+      ]);
+    case "loop_stmt":
+      return joinSegments([
+        keyword("for"), plain(" "),
+        pickIdentifier(def, random), plain(" "), buildToken("=", "operator"), plain(" "),
+        pickLiteral(def, random), punctuation(","), plain(" "), pickLiteral(def, random),
+        plain(" "), keyword("do"),
+      ]);
+    case "return_stmt":
+      return joinSegments([keyword("return"), plain(" "), generateExpression(def, random)]);
+    case "comment":
+      return [buildToken(`${def.commentPrefix}${sample(def.tokens.identifiers, random)} ${sample(def.tokens.identifiers, random)} ${sample(def.tokens.literals, random)}`, "comment")];
+    default:
+      return generateExpression(def, random);
   }
+}
 
+function renderTemplate(template, def, random) {
+  if (def === LANGUAGE_DEFS.python) return pythonLine(template, def, random);
+  if (def === LANGUAGE_DEFS.lua) return luaLine(template, def, random);
   return javascriptLine(template, def, random);
 }
 
 
 function shouldIncreaseIndent(segments, def) {
   const text = segments.map((segment) => segment.text).join("");
+  if (def === LANGUAGE_DEFS.lua) {
+    return def.blockOpeners.some((opener) => text.startsWith(opener)) && /(then|do)\s*$/.test(text);
+  }
   return def.blockOpeners.some((opener) => text.startsWith(opener)) && /(:|\{)\s*$/.test(text);
 }
 
 function closingLine(def) {
-  if (def === LANGUAGE_DEFS.javascript) {
+  if (def === LANGUAGE_DEFS.javascript || def === LANGUAGE_DEFS.typescript) {
     return [punctuation("}")];
   }
-
+  if (def === LANGUAGE_DEFS.lua) {
+    return [keyword("end")];
+  }
   return [buildToken(`${def.commentPrefix.trim()} end`, "comment")];
 }
 

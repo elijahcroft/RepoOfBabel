@@ -16,8 +16,8 @@ const LEVELS = ["repos", "repo", "folder", "view"];
 const REPOS_PER_PAGE = 12;
 
 const OWNER = "babel";
-const EXTENSIONS = { python: "py", javascript: "js", typescript: "ts" };
-const LANG_COLORS = { python: "#3572A5", javascript: "#f1e05a", typescript: "#3178c6" };
+const EXTENSIONS = { python: "py", javascript: "js", typescript: "ts", lua: "lua" };
+const LANG_COLORS = { python: "#3572A5", javascript: "#f1e05a", typescript: "#3178c6", lua: "#00007C" };
 
 const ADJECTIVES = [
   "async", "atomic", "binary", "cached", "canonical", "compiled", "concurrent", "deterministic",
@@ -580,7 +580,7 @@ function renderBreadcrumb() {
   const back = document.createElement("button");
   back.type = "button";
   back.className = "ghcrumb-back";
-  back.innerHTML = "&#8592;";
+  back.innerHTML = `<svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M9.78 12.78a.75.75 0 0 1-1.06 0L4.47 8.53a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L6.06 8l3.72 3.72a.75.75 0 0 1 0 1.06Z"/></svg>`;
   back.setAttribute("aria-label", "Go back");
   back.addEventListener("click", goBack);
   elements.breadcrumb.append(back);
@@ -778,13 +778,48 @@ function renderActions() {
   wrap.append(branchButton, menu);
   toolbar.append(wrap);
 
-  // Lightweight inline branch / tag counts, like GitHub's repo header stats.
-  const branchCount = BOUNDS.branch.max;
-  const tagCount = 3 + Math.floor(seeded(state.repo * 31 + 7)() * 18);
-  toolbar.append(
-    statItem(ICONS.branch, branchCount, branchCount === 1 ? "Branch" : "Branches"),
-    statItem(ICONS.tag, tagCount, tagCount === 1 ? "Tag" : "Tags"),
-  );
+  if (state.level !== "view") {
+    // Branch / tag counts only shown outside file view.
+    const branchCount = BOUNDS.branch.max;
+    const tagCount = 3 + Math.floor(seeded(state.repo * 31 + 7)() * 18);
+    toolbar.append(
+      statItem(ICONS.branch, branchCount, branchCount === 1 ? "Branch" : "Branches"),
+      statItem(ICONS.tag, tagCount, tagCount === 1 ? "Tag" : "Tags"),
+    );
+  } else {
+    // File navigation: prev / next within the folder.
+    const pager = document.createElement("div");
+    pager.className = "gh-pager";
+
+    const prev = document.createElement("button");
+    prev.type = "button";
+    prev.className = "gh-btn gh-btn-icon";
+    prev.title = "Previous file";
+    prev.textContent = "‹";
+    prev.disabled = state.file <= BOUNDS.file.min;
+    prev.addEventListener("click", () => {
+      state.file = Math.max(BOUNDS.file.min, state.file - 1);
+      render();
+    });
+
+    const fileLabel = document.createElement("span");
+    fileLabel.className = "gh-page-label";
+    fileLabel.textContent = `${state.file} / ${BOUNDS.file.max}`;
+
+    const next = document.createElement("button");
+    next.type = "button";
+    next.className = "gh-btn gh-btn-icon";
+    next.title = "Next file";
+    next.textContent = "›";
+    next.disabled = state.file >= BOUNDS.file.max;
+    next.addEventListener("click", () => {
+      state.file = Math.min(BOUNDS.file.max, state.file + 1);
+      render();
+    });
+
+    pager.append(prev, fileLabel, next);
+    toolbar.append(pager);
+  }
 
   elements.actions.append(toolbar);
 

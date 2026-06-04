@@ -67,6 +67,17 @@ function runTs(source) {
   return runInWorker(() => new Worker("./workers/ts-runner.js"), source, JS_TIMEOUT_MS);
 }
 
+let luaWorker = null;
+
+function getLuaWorker() {
+  if (!luaWorker) luaWorker = new Worker("./workers/lua-runner2.js");
+  return luaWorker;
+}
+
+function runLua(source) {
+  return runInWorker(getLuaWorker, source, JS_TIMEOUT_MS, () => { luaWorker = null; });
+}
+
 // The Pyodide worker is expensive to create (downloads + initializes the runtime),
 // so it is created once and reused. If a run times out we terminate and clear the
 // cache, forcing a fresh load on the next attempt.
@@ -89,12 +100,13 @@ const RUNNERS = {
   javascript: runJs,
   python: runPython,
   typescript: runTs,
+  lua: runLua,
 };
 
 // True when running `lang` will load a heavy runtime that isn't ready yet — lets
 // the UI show "Loading runtime…" on the first Python run.
 export function needsRuntimeLoad(lang) {
-  return lang === "python" && pyWorker === null;
+  return (lang === "python" && pyWorker === null) || (lang === "lua" && luaWorker === null);
 }
 
 export async function runCode(lang, source) {
