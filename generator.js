@@ -63,6 +63,21 @@ export const LANGUAGE_DEFS = {
     },
     templates: ["assignment", "func_def", "if_stmt", "loop_stmt", "return_stmt", "expr_stmt", "comment"],
   },
+  ruby: {
+    label: "Ruby",
+    icon: `<svg viewBox="0 0 16 16" width="14" height="14"><path d="M3 2h10l2 4-7 9L1 6z" fill="#CC342D"/><path d="M1 6h14l-7 9z" fill="#9B1C16"/></svg>`,
+    commentPrefix: "# ",
+    blockOpeners: ["def", "if", "for", "while", "class"],
+    tokens: {
+      keywords: ["def", "end", "if", "else", "elsif", "while", "for", "in", "return", "class", "do", "then"],
+      builtins: ["puts", "print", "p", "push", "map", "each", "to_s", "to_i", "length", "inspect"],
+      operators: ["=", "==", "!=", "+", "-", "*", "/", "%", "&&", "||", "!", "<=>"],
+      identifiers: ["x", "y", "n", "i", "j", "result", "data", "value", "items", "node", "key", "buf"],
+      literals: ["0", "1", "true", "false", "nil", '""', "[]", "{}", "-1", "42", ":sym"],
+      punctuation: ["(", ")", ",", ".", "[", "]", "|"],
+    },
+    templates: ["assignment", "func_def", "if_stmt", "loop_stmt", "return_stmt", "expr_stmt", "comment"],
+  },
 };
 
 export const DEFAULT_ADDRESS = {
@@ -313,9 +328,40 @@ function luaLine(template, def, random) {
   }
 }
 
+function rubyLine(template, def, random) {
+  switch (template) {
+    case "assignment":
+      return joinSegments([pickIdentifier(def, random), plain(" "), buildToken("=", "operator"), plain(" "), generateExpression(def, random)]);
+    case "func_def":
+      return joinSegments([
+        keyword("def"), plain(" "),
+        pickIdentifier(def, random), punctuation("("),
+        pickIdentifier(def, random), punctuation(","), plain(" "), pickIdentifier(def, random),
+        punctuation(")"),
+      ]);
+    case "if_stmt":
+      return joinSegments([
+        keyword("if"), plain(" "),
+        pickIdentifier(def, random), plain(" "), pickOperator(def, random), plain(" "), pickLiteral(def, random),
+      ]);
+    case "loop_stmt":
+      return joinSegments([
+        keyword("for"), plain(" "),
+        pickIdentifier(def, random), plain(" "), keyword("in"), plain(" "), pickIdentifier(def, random),
+      ]);
+    case "return_stmt":
+      return joinSegments([keyword("return"), plain(" "), generateExpression(def, random)]);
+    case "comment":
+      return [buildToken(`${def.commentPrefix}${sample(def.tokens.identifiers, random)} ${sample(def.tokens.identifiers, random)} ${sample(def.tokens.literals, random)}`, "comment")];
+    default:
+      return generateExpression(def, random);
+  }
+}
+
 function renderTemplate(template, def, random) {
   if (def === LANGUAGE_DEFS.python) return pythonLine(template, def, random);
   if (def === LANGUAGE_DEFS.lua) return luaLine(template, def, random);
+  if (def === LANGUAGE_DEFS.ruby) return rubyLine(template, def, random);
   return javascriptLine(template, def, random);
 }
 
@@ -325,6 +371,12 @@ function shouldIncreaseIndent(segments, def) {
   if (def === LANGUAGE_DEFS.lua) {
     return def.blockOpeners.some((opener) => text.startsWith(opener)) && /(then|do)\s*$/.test(text);
   }
+  // Ruby blocks have no trailing terminator token (no `:`/`{`/`then`/`do`), so
+  // detect openers by the leading keyword instead. `opener + " "` avoids matching
+  // an identifier or builtin that merely shares the prefix.
+  if (def === LANGUAGE_DEFS.ruby) {
+    return def.blockOpeners.some((opener) => text.startsWith(`${opener} `));
+  }
   return def.blockOpeners.some((opener) => text.startsWith(opener)) && /(:|\{)\s*$/.test(text);
 }
 
@@ -332,7 +384,7 @@ function closingLine(def) {
   if (def === LANGUAGE_DEFS.javascript || def === LANGUAGE_DEFS.typescript) {
     return [punctuation("}")];
   }
-  if (def === LANGUAGE_DEFS.lua) {
+  if (def === LANGUAGE_DEFS.lua || def === LANGUAGE_DEFS.ruby) {
     return [keyword("end")];
   }
   return [buildToken(`${def.commentPrefix.trim()} end`, "comment")];
@@ -359,7 +411,7 @@ export function generateFile(address) {
     if (indentLevel > 0 && random() < 0.18) {
       indentLevel -= 1;
 
-      if (def === LANGUAGE_DEFS.javascript) {
+      if (def === LANGUAGE_DEFS.javascript || def === LANGUAGE_DEFS.ruby) {
         lines.push({ indentLevel, segments: closingLine(def) });
       }
     }
@@ -373,7 +425,7 @@ export function generateFile(address) {
     }
   }
 
-  while (indentLevel > 0 && def === LANGUAGE_DEFS.javascript) {
+  while (indentLevel > 0 && (def === LANGUAGE_DEFS.javascript || def === LANGUAGE_DEFS.ruby)) {
     indentLevel -= 1;
     lines.push({ indentLevel, segments: closingLine(def) });
   }

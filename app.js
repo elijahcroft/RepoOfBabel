@@ -23,6 +23,8 @@ const elements = {
   codeViewer: document.querySelector("#code-viewer"),
   navButtons: Array.from(document.querySelectorAll("[data-nav]")),
   copyLink: document.querySelector("#copy-link"),
+  moreBtn: document.querySelector("#viewer-more-btn"),
+  moreMenu: document.querySelector("#viewer-more-menu"),
   runBtn: document.querySelector("#run-btn"),
   runStatus: document.querySelector("#run-status"),
   terminal: document.querySelector("#terminal"),
@@ -31,6 +33,7 @@ const elements = {
 };
 
 let currentSource = "";
+let syncLangPicker = () => {};
 
 function addressFromUrl() {
   const params = new URLSearchParams(window.location.search);
@@ -67,6 +70,101 @@ function fillLanguageOptions() {
   });
 }
 
+// GitHub-style language dropdown, ported from the browse page. The native
+// <select id="lang-input"> stays in the DOM (visually hidden) as the value
+// source of truth; this picker writes to it and reflects it.
+function buildLangPicker() {
+  const wrap = document.querySelector("#lang-picker");
+  if (!wrap) return;
+  wrap.innerHTML = "";
+  wrap.classList.add("gh-lang-picker");
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "gh-branch";
+  btn.setAttribute("aria-haspopup", "listbox");
+  btn.setAttribute("aria-expanded", "false");
+
+  const row = document.createElement("span");
+  row.className = "gh-branch-row";
+
+  const iconSpan = document.createElement("span");
+  iconSpan.className = "gh-lang-icon";
+
+  const nameSpan = document.createElement("span");
+  nameSpan.className = "gh-branch-name";
+
+  const chevron = document.createElement("span");
+  chevron.className = "gh-branch-chevron";
+  chevron.setAttribute("aria-hidden", "true");
+
+  const menu = document.createElement("div");
+  menu.className = "gh-branch-menu";
+  menu.hidden = true;
+  menu.setAttribute("role", "listbox");
+  menu.setAttribute("aria-label", "Language");
+
+  const closeMenu = () => {
+    menu.hidden = true;
+    btn.setAttribute("aria-expanded", "false");
+  };
+  const openMenu = () => {
+    menu.hidden = false;
+    btn.setAttribute("aria-expanded", "true");
+    menu.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest" });
+  };
+
+  const options = [];
+  Object.entries(LANGUAGE_DEFS).forEach(([value, def]) => {
+    const opt = document.createElement("button");
+    opt.type = "button";
+    opt.className = "gh-branch-option";
+    opt.dataset.value = value;
+    opt.innerHTML = `<span class="gh-lang-icon">${def.icon}</span>${def.label}`;
+    opt.setAttribute("role", "option");
+    opt.addEventListener("click", () => {
+      elements.lang.value = value;
+      closeMenu();
+      render(readFormAddress());
+    });
+    opt.addEventListener("keydown", (e) => {
+      const i = options.indexOf(opt);
+      if (e.key === "ArrowDown") { e.preventDefault(); options[Math.min(options.length - 1, i + 1)]?.focus(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); options[Math.max(0, i - 1)]?.focus(); }
+      else if (e.key === "Escape") { e.preventDefault(); closeMenu(); btn.focus(); }
+    });
+    options.push(opt);
+    menu.append(opt);
+  });
+
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (menu.hidden) { openMenu(); document.addEventListener("click", closeMenu, { once: true }); }
+    else closeMenu();
+  });
+  btn.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openMenu();
+      (menu.querySelector('[aria-selected="true"]') ?? options[0])?.focus();
+    }
+  });
+  menu.addEventListener("click", (e) => e.stopPropagation());
+
+  row.append(iconSpan, nameSpan, chevron);
+  btn.append(row);
+  wrap.append(btn, menu);
+
+  syncLangPicker = (lang) => {
+    const def = LANGUAGE_DEFS[lang];
+    if (!def) return;
+    iconSpan.innerHTML = def.icon;
+    nameSpan.textContent = def.label;
+    options.forEach((o) => o.setAttribute("aria-selected", String(o.dataset.value === lang)));
+  };
+  syncLangPicker(elements.lang.value || DEFAULT_ADDRESS.lang);
+}
+
 function setFormValues(address) {
   // Don't overwrite the field the user is actively typing in, or clamping
   // and defaulting would fight them mid-edit (e.g. clearing a field would
@@ -91,6 +189,7 @@ function render(address) {
   const subtitle = `repo ${address.repo} / branch ${address.branch} / folder ${address.folder} / file ${address.file} · ${LANGUAGE_DEFS[address.lang].label}`;
 
   setFormValues(address);
+  syncLangPicker(address.lang);
   writeAddressToUrl(address);
   renderLinesInto(elements.codeViewer, generated.lines);
   currentSource = linesToSource(generated.lines);
@@ -136,6 +235,10 @@ async function runCurrentFile() {
 
   elements.terminalWrap.hidden = false;
   elements.splitView.classList.add("has-output");
+  elements.terminalWrap.classList.remove("ping");
+  void elements.terminalWrap.offsetWidth;
+  elements.terminalWrap.classList.add("ping");
+  elements.terminalWrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
   elements.runStatus.textContent = result.timedOut
     ? "timed out"
     : result.ok ? `exit ok · ${result.durationMs}ms` : `error · ${result.durationMs}ms`;
@@ -272,9 +375,26 @@ function bindEvents() {
     });
   });
 
+  elements.moreBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = !elements.moreMenu.hidden;
+    elements.moreMenu.hidden = open;
+    elements.moreBtn.setAttribute("aria-expanded", String(!open));
+  });
+
+  document.addEventListener("click", (e) => {
+    if (elements.moreMenu && !elements.moreMenu.hidden && !elements.moreMenu.contains(e.target) && e.target !== elements.moreBtn) {
+      elements.moreMenu.hidden = true;
+      elements.moreBtn.setAttribute("aria-expanded", "false");
+    }
+  });
+
   elements.copyLink.addEventListener("click", async () => {
     const url = window.location.href;
     const original = elements.copyLink.textContent;
+
+    elements.moreMenu.hidden = true;
+    elements.moreBtn.setAttribute("aria-expanded", "false");
 
     try {
       await navigator.clipboard.writeText(url);
@@ -293,9 +413,26 @@ function bindEvents() {
   });
 
   elements.runBtn?.addEventListener("click", runCurrentFile);
+
+  document.querySelector(".term-dot-red")?.addEventListener("click", () => {
+    elements.terminalWrap.hidden = true;
+    elements.splitView.classList.remove("has-output", "expanded");
+    elements.terminalWrap.classList.remove("minimized", "ping");
+  });
+
+  document.querySelector(".term-dot-yellow")?.addEventListener("click", () => {
+    elements.terminalWrap.classList.toggle("minimized");
+    elements.splitView.classList.remove("expanded");
+  });
+
+  document.querySelector(".term-dot-green")?.addEventListener("click", () => {
+    elements.splitView.classList.toggle("expanded");
+    elements.terminalWrap.classList.remove("minimized");
+  });
 }
 
 fillLanguageOptions();
+buildLangPicker();
 bindEvents();
 render(addressFromUrl());
 

@@ -12,6 +12,7 @@
 
 const JS_TIMEOUT_MS = 3000;
 const PY_RUN_TIMEOUT_MS = 15000; // generous: first run also pays Pyodide load time
+const RUBY_RUN_TIMEOUT_MS = 30000; // ruby+stdlib.wasm is larger than Pyodide; the first run downloads it
 
 function emptyResult() {
   return { ok: false, stdout: "", stderr: "", durationMs: 0, timedOut: false };
@@ -96,17 +97,40 @@ function runPython(source) {
   });
 }
 
+// Like Python, the Ruby runtime (ruby.wasm) is expensive to load, so the worker
+// is cached and reused. It is a module worker because ruby.wasm's browser build
+// is distributed as an ES module (see workers/ruby-runner.js).
+let rubyWorker = null;
+
+function getRubyWorker() {
+  if (!rubyWorker) {
+    rubyWorker = new Worker("./workers/ruby-runner.js", { type: "module" });
+  }
+  return rubyWorker;
+}
+
+function runRuby(source) {
+  return runInWorker(getRubyWorker, source, RUBY_RUN_TIMEOUT_MS, () => {
+    rubyWorker = null;
+  });
+}
+
 const RUNNERS = {
   javascript: runJs,
   python: runPython,
   typescript: runTs,
   lua: runLua,
+  ruby: runRuby,
 };
 
 // True when running `lang` will load a heavy runtime that isn't ready yet — lets
 // the UI show "Loading runtime…" on the first Python run.
 export function needsRuntimeLoad(lang) {
-  return (lang === "python" && pyWorker === null) || (lang === "lua" && luaWorker === null);
+  return (
+    (lang === "python" && pyWorker === null) ||
+    (lang === "lua" && luaWorker === null) ||
+    (lang === "ruby" && rubyWorker === null)
+  );
 }
 
 export async function runCode(lang, source) {

@@ -24,68 +24,78 @@
         <h1>Address Viewer</h1>
       </header>
 
-      <section class="panel controls-panel">
-        <form id="address-form" class="address-grid" autocomplete="off">
-          <label>
-            <span>Repo <em class="bound">∞</em></span>
-            <div class="spin-field">
-              <button type="button" class="spin-btn" data-nav="prev-repo" aria-label="Previous repo">‹</button>
-              <input id="repo-input" name="repo" type="number" min="1" step="1" required />
-              <button type="button" class="spin-btn" data-nav="next-repo" aria-label="Next repo">›</button>
+      <section class="panel gh-panel">
+        <form id="address-form" class="viewer-topbar" autocomplete="off">
+          <div class="addr-coords">
+            <div class="addr-field">
+              <span class="addr-label">repo</span>
+              <div class="stepper">
+                <button type="button" class="stepper-btn" data-nav="prev-repo" aria-label="Previous repo">‹</button>
+                <input id="repo-input" name="repo" type="number" min="1" step="1" required />
+                <button type="button" class="stepper-btn" data-nav="next-repo" aria-label="Next repo">›</button>
+              </div>
             </div>
-          </label>
-          <label>
-            <span>Branch <em class="bound">1–32</em></span>
-            <div class="spin-field">
-              <button type="button" class="spin-btn" data-nav="prev-branch" aria-label="Previous branch">‹</button>
-              <input id="branch-input" name="branch" type="number" min="1" max="32" step="1" required />
-              <button type="button" class="spin-btn" data-nav="next-branch" aria-label="Next branch">›</button>
+            <span class="addr-sep">/</span>
+            <div class="addr-field">
+              <span class="addr-label">branch</span>
+              <div class="stepper">
+                <button type="button" class="stepper-btn" data-nav="prev-branch" aria-label="Previous branch">‹</button>
+                <input id="branch-input" name="branch" type="number" min="1" max="32" step="1" required />
+                <button type="button" class="stepper-btn" data-nav="next-branch" aria-label="Next branch">›</button>
+              </div>
             </div>
-          </label>
-          <label>
-            <span>Folder <em class="bound">1–128</em></span>
-            <div class="spin-field">
-              <button type="button" class="spin-btn" data-nav="prev-folder" aria-label="Previous folder">‹</button>
-              <input id="folder-input" name="folder" type="number" min="1" max="128" step="1" required />
-              <button type="button" class="spin-btn" data-nav="next-folder" aria-label="Next folder">›</button>
+            <span class="addr-sep">/</span>
+            <div class="addr-field">
+              <span class="addr-label">folder</span>
+              <div class="stepper">
+                <button type="button" class="stepper-btn" data-nav="prev-folder" aria-label="Previous folder">‹</button>
+                <input id="folder-input" name="folder" type="number" min="1" max="128" step="1" required />
+                <button type="button" class="stepper-btn" data-nav="next-folder" aria-label="Next folder">›</button>
+              </div>
             </div>
-          </label>
-          <label>
-            <span>File <em class="bound">1–64</em></span>
-            <div class="spin-field">
-              <button type="button" class="spin-btn" data-nav="prev-file" aria-label="Previous file">‹</button>
-              <input id="file-input" name="file" type="number" min="1" max="64" step="1" required />
-              <button type="button" class="spin-btn" data-nav="next-file" aria-label="Next file">›</button>
+            <span class="addr-sep">/</span>
+            <div class="addr-field">
+              <span class="addr-label">file</span>
+              <div class="stepper">
+                <button type="button" class="stepper-btn" data-nav="prev-file" aria-label="Previous file">‹</button>
+                <input id="file-input" name="file" type="number" min="1" max="64" step="1" required />
+                <button type="button" class="stepper-btn" data-nav="next-file" aria-label="Next file">›</button>
+              </div>
             </div>
-          </label>
-          <label class="language-select">
-            <span>Language</span>
-            <select id="lang-input" name="lang"></select>
-          </label>
+          </div>
+
+          <div class="viewer-tools">
+            <div id="lang-picker" class="gh-branch-wrap"></div>
+            <button type="button" class="gh-btn" data-nav="random" title="Jump to a random address">Random</button>
+            <div class="viewer-more-wrap">
+              <button type="button" class="gh-btn viewer-more-btn" id="viewer-more-btn" title="More options" aria-haspopup="true" aria-expanded="false">⋯</button>
+              <div class="viewer-more-menu" id="viewer-more-menu" hidden>
+                <button type="button" class="viewer-more-item" id="copy-link">Copy link</button>
+              </div>
+            </div>
+            <select id="lang-input" name="lang" class="visually-hidden" tabindex="-1" aria-hidden="true"></select>
+          </div>
         </form>
 
-        <div class="nav-actions-row">
-          <button type="button" class="action-btn" data-nav="random">Random Jump</button>
-          <button type="button" class="action-btn ghost" id="copy-link">Copy Link</button>
-        </div>
-      </section>
-
-      <section class="panel viewer-panel">
-        <div class="viewer-header">
-          <p id="viewer-subtitle" class="viewer-subtitle"></p>
+        <div class="blob-head">
+          <span class="blob-name">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M2 1.75C2 .784 2.784 0 3.75 0h5.336c.464 0 .909.184 1.237.513l3.164 3.164c.329.328.513.773.513 1.237v9.336A1.75 1.75 0 0 1 12.25 16h-8.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25V6h-3a1.5 1.5 0 0 1-1.5-1.5v-3Zm5.75-.06V4.5c0 .138.112.25.25.25h2.81Z"></path></svg>
+            <p id="viewer-subtitle" class="viewer-subtitle"></p>
+          </span>
           <div class="blob-run">
             <button id="run-btn" class="gh-btn" type="button">▶ Run</button>
           </div>
         </div>
+
         <div id="split-view" class="split-view">
           <div class="code-viewer-wrap" id="code-viewer-wrap">
             <div id="code-viewer" class="code-viewer" aria-live="polite"></div>
           </div>
           <div id="terminal-wrap" class="terminal-wrap" hidden>
             <div class="terminal-bar">
-              <span class="term-dot term-dot-red"></span>
-              <span class="term-dot term-dot-yellow"></span>
-              <span class="term-dot term-dot-green"></span>
+              <button type="button" class="term-dot term-dot-red" aria-label="Close terminal" title="Close"></button>
+              <button type="button" class="term-dot term-dot-yellow" aria-label="Minimize terminal" title="Minimize"></button>
+              <button type="button" class="term-dot term-dot-green" aria-label="Expand terminal" title="Expand"></button>
               <span class="term-title">output</span>
               <span id="run-status" class="run-status"></span>
             </div>

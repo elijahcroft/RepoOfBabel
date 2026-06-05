@@ -16,8 +16,8 @@ const LEVELS = ["repos", "repo", "folder", "view"];
 const REPOS_PER_PAGE = 12;
 
 const OWNER = "babel";
-const EXTENSIONS = { python: "py", javascript: "js", typescript: "ts", lua: "lua" };
-const LANG_COLORS = { python: "#3572A5", javascript: "#f1e05a", typescript: "#3178c6", lua: "#00007C" };
+const EXTENSIONS = { python: "py", javascript: "js", typescript: "ts", lua: "lua", ruby: "rb" };
+const LANG_COLORS = { python: "#3572A5", javascript: "#f1e05a", typescript: "#3178c6", lua: "#00007C", ruby: "#701516" };
 
 const ADJECTIVES = [
   "async", "atomic", "binary", "cached", "canonical", "compiled", "concurrent", "deterministic",

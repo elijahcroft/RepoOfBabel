@@ -22,10 +22,22 @@
             <svg class="theme-icon-sun" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0Zm0 13a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm7.25-5.25a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1 0-1.5h1.5ZM0 8a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H.75A.75.75 0 0 1 0 8Zm11.314-4.886a.75.75 0 0 1 1.06 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061ZM4.687 11.253a.75.75 0 0 1 1.06 1.06l-1.06 1.061a.75.75 0 1 1-1.06-1.06l1.06-1.061Zm7.687 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 1.06-1.061l1.061 1.06ZM4.687 4.747a.75.75 0 0 1-1.06 1.06L2.566 4.747a.75.75 0 0 1 1.06-1.06l1.061 1.06Z"/></svg>
           </button>
         </div>
-        <p class="landing-lede">
-          Every program that could ever exist already does — waiting at its address.
-          Nothing is created here. Only found.
-        </p>
+        <div class="totality">
+          <p class="totality-count"><span id="totality-count">2,361,183,241,434,822,344,704</span></p>
+          <p class="totality-sub">≈ 2.36 sextillion addressable files — every one already written</p>
+          <a class="totality-door" id="totality-door" href="./viewer.html?repo=4&branch=12&folder=7&file=3&lang=python" aria-label="Open a file at a random address">
+            <span class="totality-coord" id="totality-coord">
+              <span class="tc-part"><span class="tc-k">repo</span> <span class="tc-v" data-k="repo">4</span></span>
+              <span class="tc-dot">·</span>
+              <span class="tc-part"><span class="tc-k">branch</span> <span class="tc-v" data-k="branch">12</span></span>
+              <span class="tc-dot">·</span>
+              <span class="tc-part"><span class="tc-k">folder</span> <span class="tc-v" data-k="folder">7</span></span>
+              <span class="tc-dot">·</span>
+              <span class="tc-part"><span class="tc-k">file</span> <span class="tc-v" data-k="file">3</span></span>
+            </span>
+            <span class="totality-door-cue">step into this one <span class="td-arrow" aria-hidden="true">→</span></span>
+          </a>
+        </div>
       </header>
 
       <section class="mode-grid">
@@ -60,8 +72,68 @@
       </section>
 
       <footer class="landing-foot">
-        <p>repo → branch (1–32) → folder (1–128) → file (1–64)</p>
+        <p>repo (∞) → branch (1–32) → folder (1–128) → file (1–64)</p>
       </footer>
     </main>
+    <script>
+      // Address space, straight from generator.js BOUNDS:
+      // repo (1 .. MAX_SAFE_INTEGER) x branch (32) x folder (128) x file (64).
+      const BOUNDS = { repo: 9007199254740991, branch: 32, folder: 128, file: 64 };
+      const group = (s) => s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      const rint = (max) => Math.floor(Math.random() * max) + 1;
+
+      const LANGS = ["python", "javascript", "lua", "typescript", "ruby"];
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+      const total =
+        BigInt(BOUNDS.repo) * BigInt(BOUNDS.branch) *
+        BigInt(BOUNDS.folder) * BigInt(BOUNDS.file);
+      document.getElementById("totality-count").textContent = group(total.toString());
+
+      const coord = document.getElementById("totality-coord");
+      const door = document.getElementById("totality-door");
+      const slots = coord.querySelectorAll(".tc-v");
+
+      function render(addr) {
+        slots.forEach((el) => {
+          el.textContent = group(String(addr[el.dataset.k]));
+        });
+        door.href =
+          `./viewer.html?repo=${addr.repo}&branch=${addr.branch}` +
+          `&folder=${addr.folder}&file=${addr.file}&lang=${addr.lang}`;
+      }
+
+      function newAddress() {
+        return {
+          repo: rint(BOUNDS.repo),
+          branch: rint(BOUNDS.branch),
+          folder: rint(BOUNDS.folder),
+          file: rint(BOUNDS.file),
+          lang: pick(LANGS),
+        };
+      }
+
+      function reshuffle() {
+        coord.classList.add("shuffling");
+        setTimeout(() => {
+          render(newAddress());
+          coord.classList.remove("shuffling");
+        }, 280);
+      }
+
+      render(newAddress());
+
+      // Drift through random galleries, but pause on hover/focus so the
+      // address you reach for is the one you land on.
+      let timer = null;
+      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const start = () => { if (!still && !timer) timer = setInterval(reshuffle, 2600); };
+      const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
+      start();
+      door.addEventListener("mouseenter", stop);
+      door.addEventListener("mouseleave", start);
+      door.addEventListener("focus", stop);
+      door.addEventListener("blur", start);
+    </script>
   </body>
 </html>
